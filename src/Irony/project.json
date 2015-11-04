@@ -1,0 +1,36 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "Irony Class Library",
+  "authors": [ "Kewell" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+  "dependencies": {
+  },
+  "frameworks": {
+    "dnx451": {
+      "frameworkAssemblies": {
+        "System.Numerics": "4.0.0.0",
+        "System.XML": "4.0.0.0"
+      }
+    },
+    "dnxcore50": {
+      "dependencies": {
+        "Microsoft.CSharp": "4.0.1-beta-23409",
+        "System.Collections": "4.0.11-beta-23409",
+        "System.Linq": "4.0.1-beta-23409",
+        "System.Runtime": "4.0.21-beta-23409",
+        "System.Runtime.Numerics": "4.0.1-beta-23409",
+        "System.Threading": "4.0.11-beta-23409",
+        "System.Xml.XmlDocument": "4.0.1-beta-23409",
+        "System.Xml.XPath": "4.0.1-beta-23409",
+        "System.Globalization.Extensions": "4.0.1-beta-23409",
+        "System.Reflection": "4.1.0-beta-23409",
+        "System.Reflection.Extensions": "4.0.1-beta-23409",
+        "System.Reflection.Emit": "4.0.1-beta-23409",
+        "System.Reflection.Emit.Lightweight": "4.0.1-beta-23409",
+        "System.Reflection.Emit.ILGeneration": "4.0.1-beta-23409"
+      }
+    }
+  }
+}

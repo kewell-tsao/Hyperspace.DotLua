@@ -6,8 +6,8 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\DNX\Microsoft.DNX.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>8f7d3a92-0613-4c2c-ae5d-8417d73700cc</ProjectGuid>
-    <RootNamespace>DotLua</RootNamespace>
+    <ProjectGuid>a556b3b1-f657-48ae-b488-3dfeeab99cec</ProjectGuid>
+    <RootNamespace>Irony.Interpreter</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">..\..\artifacts\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">..\..\artifacts\bin\$(MSBuildProjectName)\</OutputPath>
   </PropertyGroup>

@@ -152,10 +152,11 @@ namespace DotLua
 
         private static Expression GetVariable(Variable expr, Expression Context)
         {
-            if (expr.Prefix == null)
-                return Expression.Call(Context, LuaContext_Get, Expression.Constant(expr.Name));
-            var p = CompileSingleExpression(expr.Prefix, Context);
-            return Expression.Property(p, "Item", Expression.Convert(Expression.Constant(expr.Name), LuaObject_Type));
+            return Expression.Call(Context, LuaContext_Get, Expression.Constant(expr.Name));
+            //if (expr.Prefix == null)
+            //    return Expression.Call(Context, LuaContext_Get, Expression.Constant(expr.Name));
+            //var p = CompileSingleExpression(expr.Prefix, Context);
+            //return Expression.Property(p, "Item", Expression.Convert(Expression.Constant(expr.Name), LuaObject_Type));
         }
 
         private static Expression GetTableAccess(TableAccess expr, Expression Context)
@@ -387,12 +388,13 @@ namespace DotLua
 
         private static Expression SetVariable(Variable expr, Expression value, Expression Context)
         {
-            if (expr.Prefix == null)
-                return Expression.Call(Context, LuaContext_Set, Expression.Constant(expr.Name), value);
-            var prefix = CompileSingleExpression(expr.Prefix, Context);
-            var index = Expression.Constant((LuaObject)(expr.Name));
-            var set = Expression.Property(prefix, "Item", index);
-            return Expression.Assign(set, value);
+            return Expression.Call(Context, LuaContext_Set, Expression.Constant(expr.Name), value);
+            //if (expr.Prefix == null)
+            //    return Expression.Call(Context, LuaContext_Set, Expression.Constant(expr.Name), value);
+            //var prefix = CompileSingleExpression(expr.Prefix, Context);
+            //var index = Expression.Constant((LuaObject)(expr.Name));
+            //var set = Expression.Property(prefix, "Item", index);
+            //return Expression.Assign(set, value);
         }
 
         private static Expression CompileAssignment(Assignment assign, Expression Context)

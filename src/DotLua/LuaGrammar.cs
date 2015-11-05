@@ -9,13 +9,13 @@ namespace DotLua
         {
             #region Terminals
 
-            Terminal Identifier = new IdentifierTerminal("identifier");
-            Terminal SingleString = new StringLiteral("string", "'", StringOptions.AllowsAllEscapes);
-            Terminal DoubleString = new StringLiteral("string", "\"", StringOptions.AllowsAllEscapes);
-            Terminal Number = new NumberLiteral("number", NumberOptions.AllowSign);
+            var Identifier = new IdentifierTerminal("identifier");
+            var SingleString = new StringLiteral("string", "'", StringOptions.AllowsAllEscapes);
+            var DoubleString = new StringLiteral("string", "\"", StringOptions.AllowsAllEscapes);
+            var Number = new NumberLiteral("number", NumberOptions.AllowSign);
 
-            Terminal LineComment = new CommentTerminal("Comment", "--", "\n", "\r");
-            Terminal LongComment = new CommentTerminal("LongComment", "--[[", "]]");
+            var LineComment = new CommentTerminal("Comment", "--", "\n", "\r");
+            var LongComment = new CommentTerminal("LongComment", "--[[", "]]");
 
             NonGrammarTerminals.Add(LineComment);
             NonGrammarTerminals.Add(LongComment);
@@ -63,6 +63,8 @@ namespace DotLua
             var TableConstruct = new NonTerminal("TableConstruct");
             var TableConstructFragment = new NonTerminal("TableConstructFragment");
 
+            var varargs = new NonTerminal("Varargs");
+
             #endregion
 
             #region Fragments
@@ -71,7 +73,7 @@ namespace DotLua
 
             CallArguments.Rule = "(" + (CallArgumentsFragment | Empty) + ")";
 
-            DefArgumentsFragment.Rule = Identifier | Identifier + "," + DefArgumentsFragment;
+            DefArgumentsFragment.Rule = Identifier | Identifier + "," + DefArgumentsFragment | varargs;
 
             DefArguments.Rule = "(" + (DefArgumentsFragment | Empty) + ")";
 
@@ -124,7 +126,6 @@ namespace DotLua
                     ) | Empty;
             TableConstruct.Rule = "{" + TableConstructFragment + "}";
 
-            var varargs = new NonTerminal("Varargs");
             varargs.Rule = "...";
 
             Expression.Rule =

@@ -16,6 +16,10 @@ namespace DotLua
     /// </summary>
     public class LuaException : Exception
     {
+        public string file;
+        public int row, col;
+        public string message;
+
         /// <summary>
         ///     An exception thrown by a syntactical error
         /// </summary>
@@ -26,11 +30,16 @@ namespace DotLua
         public LuaException(string file, int row, int col, string message)
             : base($"Error in {file}({row},{col}): {message}")
         {
+            this.file = file;
+            this.row = row;
+            this.col = col;
+            this.message = message;
         }
 
         public LuaException(string message)
             : base("Error (unknown context): " + message)
         {
+            this.message = message;
         }
     }
 

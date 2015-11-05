@@ -31,6 +31,7 @@ namespace DotLua.Ast
     public abstract class AstElement
     {
         public int lineNumber, columnNumber;
+        public string filename;
     }
 
     public interface IStatement
@@ -41,15 +42,20 @@ namespace DotLua.Ast
     {
     }
 
+    public interface ILiteral
+    {
+        LuaObject GetValue();
+    }
+
     public interface IAssignable : IExpression
     {
     }
 
     public class Variable : AstElement, IExpression, IAssignable
     {
-        public string Name;
         // Prefix.Name
-        public IExpression Prefix;
+        //public IExpression Prefix;
+        public string Name;
     }
 
     public class Argument : AstElement
@@ -60,20 +66,39 @@ namespace DotLua.Ast
     public class StringLiteral : AstElement, IExpression
     {
         public string Value;
+
+        public LuaObject GetValue()
+        {
+            return LuaObject.FromString(Value);
+        }
     }
 
     public class NumberLiteral : AstElement, IExpression
     {
         public double Value;
+
+        public LuaObject GetValue()
+        {
+            return LuaObject.FromNumber(Value);
+        }
     }
 
     public class NilLiteral : AstElement, IExpression
     {
+        public LuaObject GetValue()
+        {
+            return LuaObject.Nil;
+        }
     }
 
     public class BoolLiteral : AstElement, IExpression
     {
         public bool Value;
+
+        public LuaObject GetValue()
+        {
+            return LuaObject.FromBool(Value);
+        }
     }
 
     public class VarargsLiteral : AstElement, IExpression
@@ -82,8 +107,8 @@ namespace DotLua.Ast
 
     public class FunctionCall : AstElement, IStatement, IExpression
     {
-        public List<IExpression> Arguments = new List<IExpression>();
         public IExpression Function;
+        public List<IExpression> Arguments = new List<IExpression>();
     }
 
     public class TableAccess : AstElement, IExpression, IAssignable
@@ -97,6 +122,7 @@ namespace DotLua.Ast
     {
         // function(Arguments) Body end
         public List<Argument> Arguments = new List<Argument>();
+        public bool isVarargs;
         public Block Body;
     }
 
@@ -119,12 +145,12 @@ namespace DotLua.Ast
 
     public class Assignment : AstElement, IStatement
     {
-        public List<IExpression> Expressions = new List<IExpression>();
         // Var1, Var2, Var3 = Exp1, Exp2, Exp3
         //public Variable[] Variables;
         //public IExpression[] Expressions;
 
         public List<IAssignable> Variables = new List<IAssignable>();
+        public List<IExpression> Expressions = new List<IExpression>();
     }
 
     public class ReturnStat : AstElement, IStatement

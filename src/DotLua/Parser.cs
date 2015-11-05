@@ -13,6 +13,7 @@ namespace DotLua
         private readonly LuaGrammar grammar = new LuaGrammar();
         private readonly LanguageData language;
         private readonly Irony.Parsing.Parser parser;
+        ParseTree curParseTree;
         public Block block;
 
         public Parser()
@@ -37,6 +38,7 @@ namespace DotLua
         {
             var source = File.ReadAllText(Filename);
             var parseTree = parser.Parse(source, Filename);
+            curParseTree = parseTree;
             var root = parseTree.Root;
             if (root == null)
             {
@@ -367,10 +369,22 @@ namespace DotLua
             if (node.Term.Name == "OopCall")
             {
                 var expr = ParsePrefix(node.ChildNodes[0]);
-                var name = node.ChildNodes[1].Token.ValueString;
+                var token = node.ChildNodes[1].Token;
+                var name = token.ValueString;
                 var call = new FunctionCall();
                 call.Arguments.Add(expr);
-                call.Function = new Variable { Name = name, Prefix = expr };
+                //call.Function = new Ast.Variable() { Name = name, Prefix = expr };
+                call.Function = new TableAccess
+                {
+                    Expression = expr,
+                    Index = new StringLiteral
+                    {
+                        Value = name,
+                        lineNumber = token.Location.Line,
+                        columnNumber = token.Location.Column,
+                        filename = curParseTree.FileName
+                    }
+                };
 
                 var root = node.ChildNodes[2].ChildNodes[0];
                 if (root.ChildNodes.Count != 0)
@@ -592,10 +606,22 @@ namespace DotLua
                 if (nameNode.ChildNodes.Count > 0)
                 {
                     def.Arguments.Add(new Argument { Name = "self" });
-                    expr = new Variable
+                    /*expr = new Ast.Variable()
                     {
                         Name = nameNode.ChildNodes[0].Token.ValueString,
                         Prefix = expr
+                    };*/
+                    var token = nameNode.ChildNodes[0].Token;
+                    expr = new TableAccess
+                    {
+                        Expression = expr,
+                        Index = new StringLiteral
+                        {
+                            Value = token.ValueString,
+                            lineNumber = token.Location.Line,
+                            columnNumber = token.Location.Column,
+                            filename = curParseTree.FileName
+                        }
                     };
                 }
                 def.Body = block;
@@ -604,6 +630,11 @@ namespace DotLua
                     argsNode = argsNode.ChildNodes[0];
                     while (argsNode.ChildNodes.Count > 0)
                     {
+                        if (argsNode.ChildNodes[0].Term.Name == "Varargs")
+                        {
+                            def.isVarargs = true;
+                            break;
+                        }
                         var ident = argsNode.ChildNodes[0].Token.ValueString;
                         def.Arguments.Add(new Argument { Name = ident });
                         if (argsNode.ChildNodes.Count == 1)
@@ -718,19 +749,33 @@ namespace DotLua
                 {
                     var token = node.ChildNodes[0].Token;
                     var name = token.ValueString;
-                    return new Variable { Name = name, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                    return new Variable
+                    {
+                        Name = name,
+                        lineNumber = token.Location.Line,
+                        columnNumber = token.Location.Column,
+                        filename = curParseTree.FileName
+                    };
                 }
                 var prefix = ParsePrefix(node.ChildNodes[0]);
                 if (node.ChildNodes[1].Term.Name == "Expression")
                 {
                     var index = ParseExpression(node.ChildNodes[1]);
-                    return new TableAccess {Expression = prefix, Index = index};
+                    return new TableAccess { Expression = prefix, Index = index };
                 }
                 else
                 {
                     var token = node.ChildNodes[1].Token;
                     var name = token.ValueString;
-                    return new Variable { Name = name, Prefix = prefix, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                    //return new Ast.Variable() { Name = name, Prefix = prefix, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                    return new TableAccess
+                    {
+                        Expression = prefix,
+                        Index = new StringLiteral { Value = name },
+                        lineNumber = token.Location.Line,
+                        columnNumber = token.Location.Column,
+                        filename = curParseTree.FileName
+                    };
                 }
             }
             throw new Exception("Invalid Variable node");
@@ -773,7 +818,8 @@ namespace DotLua
                             {
                                 Value = token.ValueString,
                                 lineNumber = token.Location.Line,
-                                columnNumber = token.Location.Column
+                                columnNumber = token.Location.Column,
+                                filename = curParseTree.FileName
                             };
                         }
                         else
@@ -806,26 +852,33 @@ namespace DotLua
                 var token = child.Token;
                 if (token != null && token.Terminal is NumberLiteral)
                 {
-                    return new Ast.NumberLiteral()
+                    return new NumberLiteral
                     {
                         Value = (token.Value is double ? (double)(token.Value) : (int)(token.Value)),
                         lineNumber = token.Location.Line,
-                        columnNumber = token.Location.Column
+                        columnNumber = token.Location.Column,
+                        filename = curParseTree.FileName
                     };
                 }
                 else if (token != null && token.Terminal is StringLiteral)
                 {
-                    return new Ast.StringLiteral() { Value = (string)(token.Value), lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                    return new StringLiteral
+                    {
+                        Value = (string)(token.Value),
+                        lineNumber = token.Location.Line,
+                        columnNumber = token.Location.Column,
+                        filename = curParseTree.FileName
+                    };
                 }
                 else if (token != null && token.Terminal is KeyTerm)
                 {
-                    string val = token.ValueString;
+                    var val = token.ValueString;
                     if (val == "true")
-                        return new BoolLiteral { Value = true, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                        return new BoolLiteral { Value = true, lineNumber = token.Location.Line, columnNumber = token.Location.Column, filename = curParseTree.FileName };
                     else if (val == "false")
-                        return new BoolLiteral { Value = false, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                        return new BoolLiteral { Value = false, lineNumber = token.Location.Line, columnNumber = token.Location.Column, filename = curParseTree.FileName };
                     else if (val == "nil")
-                        return new NilLiteral { lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                        return new NilLiteral { lineNumber = token.Location.Line, columnNumber = token.Location.Column, filename = curParseTree.FileName };
                 }
                 else if (child.Term != null && child.Term.Name == "Prefix")
                 {
@@ -853,7 +906,7 @@ namespace DotLua
                 }
                 else if (child.Term != null && child.Term.Name == "Varargs")
                 {
-                    return new VarargsLiteral { lineNumber = child.Span.Location.Line, columnNumber = child.Span.Location.Column };
+                    return new VarargsLiteral { lineNumber = child.Span.Location.Line, columnNumber = child.Span.Location.Column, filename = curParseTree.FileName };
                 }
             }
             throw new Exception("Invalid Expression node");

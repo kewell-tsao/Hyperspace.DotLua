@@ -716,17 +716,22 @@ namespace DotLua
             {
                 if (node.ChildNodes.Count == 1)
                 {
-                    var name = node.ChildNodes[0].Token.ValueString;
-                    return new Variable { Name = name };
+                    var token = node.ChildNodes[0].Token;
+                    var name = token.ValueString;
+                    return new Variable { Name = name, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
                 }
                 var prefix = ParsePrefix(node.ChildNodes[0]);
                 if (node.ChildNodes[1].Term.Name == "Expression")
                 {
                     var index = ParseExpression(node.ChildNodes[1]);
-                    return new TableAccess { Expression = prefix, Index = index };
+                    return new TableAccess {Expression = prefix, Index = index};
                 }
-                var name2 = node.ChildNodes[1].Token.ValueString;
-                return new Variable { Name = name2, Prefix = prefix };
+                else
+                {
+                    var token = node.ChildNodes[1].Token;
+                    var name = token.ValueString;
+                    return new Variable { Name = name, Prefix = prefix, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                }
             }
             throw new Exception("Invalid Variable node");
         }
@@ -762,9 +767,19 @@ namespace DotLua
 
                         IExpression key;
                         if (prefix.ChildNodes[0].Term.Name == "identifier")
-                            key = new StringLiteral { Value = prefix.ChildNodes[0].Token.ValueString };
+                        {
+                            var token = prefix.ChildNodes[0].Token;
+                            key = new StringLiteral
+                            {
+                                Value = token.ValueString,
+                                lineNumber = token.Location.Line,
+                                columnNumber = token.Location.Column
+                            };
+                        }
                         else
+                        {
                             key = ParseExpression(prefix.ChildNodes[0]);
+                        }
 
                         var expr = value.ChildNodes[1];
                         var val = ParseExpression(expr);
@@ -787,27 +802,30 @@ namespace DotLua
         {
             if (node.Term.Name == "Expression")
             {
-                var child = node.ChildNodes[0];
-                if (child.Token != null && child.Token.Terminal is Irony.Parsing.NumberLiteral)
+                ParseTreeNode child = node.ChildNodes[0];
+                var token = child.Token;
+                if (token != null && token.Terminal is NumberLiteral)
                 {
-                    return new NumberLiteral
+                    return new Ast.NumberLiteral()
                     {
-                        Value = (child.Token.Value is double ? (double)(child.Token.Value) : (int)(child.Token.Value))
+                        Value = (token.Value is double ? (double)(token.Value) : (int)(token.Value)),
+                        lineNumber = token.Location.Line,
+                        columnNumber = token.Location.Column
                     };
                 }
-                if (child.Token != null && child.Token.Terminal is Irony.Parsing.StringLiteral)
+                else if (token != null && token.Terminal is StringLiteral)
                 {
-                    return new StringLiteral { Value = (string)(child.Token.Value) };
+                    return new Ast.StringLiteral() { Value = (string)(token.Value), lineNumber = token.Location.Line, columnNumber = token.Location.Column };
                 }
-                if (child.Token != null && child.Token.Terminal is KeyTerm)
+                else if (token != null && token.Terminal is KeyTerm)
                 {
-                    var val = child.Token.ValueString;
+                    string val = token.ValueString;
                     if (val == "true")
-                        return new BoolLiteral { Value = true };
-                    if (val == "false")
-                        return new BoolLiteral { Value = false };
-                    if (val == "nil")
-                        return new NilLiteral();
+                        return new BoolLiteral { Value = true, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                    else if (val == "false")
+                        return new BoolLiteral { Value = false, lineNumber = token.Location.Line, columnNumber = token.Location.Column };
+                    else if (val == "nil")
+                        return new NilLiteral { lineNumber = token.Location.Line, columnNumber = token.Location.Column };
                 }
                 else if (child.Term != null && child.Term.Name == "Prefix")
                 {
@@ -835,7 +853,7 @@ namespace DotLua
                 }
                 else if (child.Term != null && child.Term.Name == "Varargs")
                 {
-                    return new VarargsLiteral();
+                    return new VarargsLiteral { lineNumber = child.Span.Location.Line, columnNumber = child.Span.Location.Column };
                 }
             }
             throw new Exception("Invalid Expression node");

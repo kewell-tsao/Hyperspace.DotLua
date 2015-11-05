@@ -11,7 +11,7 @@
   },
 
   "commands": {
-    "DotLua.ConsoleTest": "DotLua.ConsoleTest"
+    "DotLua.Cli": "DotLua.Cli"
   },
 
   "frameworks": {

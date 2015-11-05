@@ -13,7 +13,6 @@ namespace DotLua.Cli
             lua.DynamicContext.print = (LuaFunction)print;
             lua.DynamicContext.read = (LuaFunction)read;
 
-
             while (true)
             {
                 string line = Console.ReadLine();

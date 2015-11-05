@@ -25,6 +25,7 @@ namespace DotLua
         public Block ParseString(string Chunk)
         {
             var parseTree = parser.Parse(Chunk);
+            curParseTree = parseTree;
             var root = parseTree.Root;
             if (root == null)
             {
@@ -850,7 +851,7 @@ namespace DotLua
             {
                 ParseTreeNode child = node.ChildNodes[0];
                 var token = child.Token;
-                if (token != null && token.Terminal is NumberLiteral)
+                if (token != null && token.Terminal is Irony.Parsing.NumberLiteral)
                 {
                     return new NumberLiteral
                     {
@@ -860,7 +861,7 @@ namespace DotLua
                         filename = curParseTree.FileName
                     };
                 }
-                else if (token != null && token.Terminal is StringLiteral)
+                else if (token != null && token.Terminal is Irony.Parsing.StringLiteral)
                 {
                     return new StringLiteral
                     {
